@@ -1,6 +1,5 @@
 default: deps
 	go install
-	cp ./config.toml "${GOPATH}/bin/config.toml"
 
 deps:
 	go mod tidy
