@@ -5,8 +5,8 @@ deps:
 	go mod tidy
 	go mod vendor
 
-run: default
-	cd ${GOPATH}/bin;./go-live
+run: docker
+	sudo docker-compose up
 
 docker: deps
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
