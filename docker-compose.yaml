@@ -6,9 +6,12 @@ services:
     restart: always
     environment:
       - MYSQL_DSN=root:Xr111900@tcp(rm-wz9p9wn6719qplwioho.mysql.rds.aliyuncs.com:3306)/livego?charset=utf8
+      - RTMP_ADDR=:1935
+      - HTTPFLV_ADDR=:7001
+      - MANAGE_ADDR=:8090
+      - API_ADDR=:8040
     ports:
       - 1935:1935
       - 7001:7001
       - 8090:8090
       - 8040:8040
-      - 7002:7002

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	_ "go-live/conf"
 	"go-live/protocol/httpflv"
 	"go-live/protocol/httpopera"
@@ -9,23 +8,19 @@ import (
 	"go-live/protocol/rtmp"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
 var (
-	rtmpAddr    = flag.String("rtmp-addr", ":1935", "RTMP server listen address")
-	httpFlvAddr = flag.String("httpflv-addr", ":7001", "HTTP-FLV server listen address")
-	operaAddr   = flag.String("manage-addr", ":8090", "HTTP manage interface server listen address")
-	apiAddr     = flag.String("api-addr", ":8040", "HTTP Restful API listen address")
+	rtmpAddr    = os.Getenv("RTMP_ADDR")
+	httpFlvAddr = os.Getenv("HTTPFLV_ADDR")
+	operaAddr   = os.Getenv("MANAGE_ADDR")
+	apiAddr     = os.Getenv("API_ADDR")
 )
 
-func init() {
-	log.SetFlags(log.Lshortfile | log.Ltime | log.Ldate)
-	flag.Parse()
-}
-
 func startRtmp(stream *rtmp.RtmpStream) {
-	rtmpListen, err := net.Listen("tcp", *rtmpAddr)
+	rtmpListen, err := net.Listen("tcp", rtmpAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,12 +34,12 @@ func startRtmp(stream *rtmp.RtmpStream) {
 			log.Println("RTMP server panic: ", r)
 		}
 	}()
-	log.Println("RTMP Listen On", *rtmpAddr)
+	log.Println("RTMP Listen On", rtmpAddr)
 	rtmpServer.Serve(rtmpListen)
 }
 
 func startAPI() {
-	apiListen, err := net.Listen("tcp", *apiAddr)
+	apiListen, err := net.Listen("tcp", apiAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,13 +55,13 @@ func startAPI() {
 			}
 		}()
 
-		log.Println("API Listen On", *apiAddr)
+		log.Println("API Listen On", apiAddr)
 		apiServer.Serve(apiListen)
 	}()
 }
 
 func startHTTPFlv(stream *rtmp.RtmpStream) {
-	flvListen, err := net.Listen("tcp", *httpFlvAddr)
+	flvListen, err := net.Listen("tcp", httpFlvAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,25 +73,25 @@ func startHTTPFlv(stream *rtmp.RtmpStream) {
 				log.Println("HTTP-FLV server panic: ", r)
 			}
 		}()
-		log.Println("HTTP-FLV listen On", *httpFlvAddr)
+		log.Println("HTTP-FLV listen On", httpFlvAddr)
 		hdlServer.Serve(flvListen)
 	}()
 }
 
 func startHTTPOpera(stream *rtmp.RtmpStream) {
-	if *operaAddr != "" {
-		opListen, err := net.Listen("tcp", *operaAddr)
+	if operaAddr != "" {
+		opListen, err := net.Listen("tcp", operaAddr)
 		if err != nil {
 			log.Fatal(err)
 		}
-		opServer := httpopera.NewServer(stream, *rtmpAddr)
+		opServer := httpopera.NewServer(stream, rtmpAddr)
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
 					log.Println("HTTP-Operation server panic: ", r)
 				}
 			}()
-			log.Println("HTTP-Operation listen On", *operaAddr)
+			log.Println("HTTP-Operation listen On", operaAddr)
 			opServer.Serve(opListen)
 		}()
 	}
