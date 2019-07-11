@@ -1,2 +1,0 @@
-# MYSQL 链接字符串
-MYSQL_DSN = "root:Xr111900@tcp(rm-wz9p9wn6719qplwioho.mysql.rds.aliyuncs.com:3306)/livego?charset=utf8"

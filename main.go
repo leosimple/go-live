@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	_ "go-live/conf"
 	"go-live/protocol/hls"
 	"go-live/protocol/httpflv"
 	"go-live/protocol/httpopera"
@@ -44,7 +45,7 @@ func startHls() *hls.Server {
 	return hlsServer
 }
 
-func startRtmp(stream *rtmp.RtmpStream, hlsServer *hls.Server) {
+func startRtmp(stream *rtmp.RtmpStream) {
 	rtmpListen, err := net.Listen("tcp", *rtmpAddr)
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +53,7 @@ func startRtmp(stream *rtmp.RtmpStream, hlsServer *hls.Server) {
 
 	var rtmpServer *rtmp.Server
 
-	rtmpServer = rtmp.NewRtmpServer(stream, hlsServer)
+	rtmpServer = rtmp.NewRtmpServer(stream, nil)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -131,9 +132,8 @@ func main() {
 	}()
 
 	stream := rtmp.NewRtmpStream()
-	hlsServer := startHls()
 	startHTTPFlv(stream)
 	startHTTPOpera(stream)
 	startAPI()
-	startRtmp(stream, hlsServer)
+	startRtmp(stream)
 }
