@@ -4,8 +4,8 @@ services:
   go-live:
     image: go-live
     restart: always
-    volumes: 
-      - ./config.toml:/app/config.toml
+    environment:
+      - MYSQL_DSN=root:Xr111900@tcp(rm-wz9p9wn6719qplwioho.mysql.rds.aliyuncs.com:3306)/livego?charset=utf8
     ports:
       - 1935:1935
       - 7001:7001
