@@ -3,7 +3,6 @@ module go-live
 go 1.12
 
 require (
-	github.com/BurntSushi/toml v0.3.1
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/jinzhu/gorm v1.9.8

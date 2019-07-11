@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	_ "go-live/conf"
-	"go-live/protocol/hls"
 	"go-live/protocol/httpflv"
 	"go-live/protocol/httpopera"
 	"go-live/protocol/restfulapi"
@@ -16,7 +15,6 @@ import (
 var (
 	rtmpAddr    = flag.String("rtmp-addr", ":1935", "RTMP server listen address")
 	httpFlvAddr = flag.String("httpflv-addr", ":7001", "HTTP-FLV server listen address")
-	hlsAddr     = flag.String("hls-addr", ":7002", "HLS server listen address")
 	operaAddr   = flag.String("manage-addr", ":8090", "HTTP manage interface server listen address")
 	apiAddr     = flag.String("api-addr", ":8040", "HTTP Restful API listen address")
 )
@@ -24,25 +22,6 @@ var (
 func init() {
 	log.SetFlags(log.Lshortfile | log.Ltime | log.Ldate)
 	flag.Parse()
-}
-
-func startHls() *hls.Server {
-	hlsListen, err := net.Listen("tcp", *hlsAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	hlsServer := hls.NewServer()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("HLS server panic: ", r)
-			}
-		}()
-		log.Println("HLS listen On", *hlsAddr)
-		hlsServer.Serve(hlsListen)
-	}()
-	return hlsServer
 }
 
 func startRtmp(stream *rtmp.RtmpStream) {
