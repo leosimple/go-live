@@ -16,8 +16,8 @@ func NewRouter() *httprouter.Router {
 	router.GET("/live", ListLivesHandler)
 	router.GET("/live/:appname", ListLivesByAppnameHandler)
 	router.GET("/live/:appname/:liveid/get", GetLiveByIdHandler)
-	router.PUT("/live/:appname/:liveid/:token/refershtoken", RefershLiveTokenByIdHandler)
-	router.DELETE("/live/:appname/:liveid/:token/del", DeleteLiveByIdHandler)
+	router.PUT("/live/:appname/:liveid/refershtoken", RefershLiveTokenByIdHandler)
+	router.DELETE("/live/:appname/:liveid/del", DeleteLiveByIdHandler)
 
 	return router
 }
