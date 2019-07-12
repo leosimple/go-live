@@ -3,8 +3,10 @@ package httpflv
 import (
 	"encoding/json"
 	"go-live/av"
+	"go-live/limiters"
 	"go-live/models"
 	"go-live/protocol/rtmp"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -13,6 +15,8 @@ import (
 
 type Server struct {
 	handler av.Handler
+	mux     *http.ServeMux
+	limiter *limiters.ConnectionLimiter
 }
 
 type stream struct {
@@ -28,18 +32,37 @@ type streams struct {
 func NewServer(h av.Handler) *Server {
 	return &Server{
 		handler: h,
+		mux:     http.NewServeMux(),
+		limiter: limiters.NewConnectionLimiter(1),
 	}
 }
 
+func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !server.limiter.GetConnection() {
+		w.WriteHeader(http.StatusTooManyRequests)
+		io.WriteString(w, "too many requests.")
+		return
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+	server.mux.ServeHTTP(w, r)
+
+	defer server.limiter.FreeConnection()
+}
+
 func (server *Server) Serve(l net.Listener) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	server.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		server.handleConn(w, r)
 	})
-	mux.HandleFunc("/streams", func(w http.ResponseWriter, r *http.Request) {
+	server.mux.HandleFunc("/streams", func(w http.ResponseWriter, r *http.Request) {
 		server.getStream(w, r)
 	})
-	http.Serve(l, mux)
+
+	http.Serve(l, server)
 	return nil
 }
 
@@ -144,7 +167,6 @@ func (server *Server) handleConn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	writer := NewFLVWriter(paths[0], paths[1], url, w)
 
 	server.handler.HandleWriter(writer)
