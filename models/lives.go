@@ -5,10 +5,12 @@ import (
 	"go-live/orm"
 	"log"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Live struct {
-	Id       int
+	gorm.Model
 	App      string `gorm:"not null"`
 	Livename string `gorm:"not null"`
 	Token    string `gorm:"not null"`
@@ -56,6 +58,17 @@ func GetAllLivesByappname(appname string) ([]Live, error) {
 		return nil, err
 	}
 	return lives, nil
+}
+
+func GetLiveByApporId(appname string, id int) (*Live, error) {
+	var lives []Live
+	err := orm.Gorm.Where("app = ?", appname).Where("id = ?", strconv.Itoa(id)).Find(&lives).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &lives[0], nil
 }
 
 func DeleteLive(live *Live) error {

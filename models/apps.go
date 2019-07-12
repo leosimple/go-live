@@ -1,14 +1,15 @@
 package models
 
 import (
-	"errors"
 	"go-live/orm"
 	"log"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
 )
 
 type App struct {
-	Id      int
+	gorm.Model
 	Appname string `gorm:"not null;unique"`
 	Liveon  string `gorm:"not null"`
 }
@@ -26,18 +27,11 @@ func CreateApp(app *App) error {
 }
 
 func GetAppById(id int) (*App, error) {
-	var apps []App
+	var app App
 
-	err := orm.Gorm.Where("id = ?", id).Find(&apps).Error
-	if err != nil {
-		return nil, err
-	}
+	err := orm.Gorm.First(&app, id).Error
 
-	if len(apps) == 0 {
-		return nil, errors.New("error is rellay apps")
-	}
-
-	return &apps[0], err
+	return &app, err
 }
 
 func GetAllApps() ([]App, error) {

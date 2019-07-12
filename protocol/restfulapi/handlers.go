@@ -105,7 +105,7 @@ func DeleteAppByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 
-	err = models.DeleteApp(&models.App{Id: id})
+	err = models.DeleteApp(app)
 
 	if err != nil {
 		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -251,10 +251,9 @@ func DeleteLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	err = models.DeleteLive(&models.Live{
-		App: appname,
-		Id:  id,
-	})
+	live, err := models.GetLiveByApporId(appname, id)
+
+	err = models.DeleteLive(live)
 
 	if err != nil {
 		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
