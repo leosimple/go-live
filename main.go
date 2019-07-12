@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "go-live/conf"
+	_ "go-live/models"
 	"go-live/protocol/httpflv"
 	"go-live/protocol/httpopera"
 	"go-live/protocol/restfulapi"
