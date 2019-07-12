@@ -10,6 +10,7 @@ services:
       - HTTPFLV_ADDR=:7001
       - MANAGE_ADDR=:8090
       - API_ADDR=:8040
+      - MAX_CONNECTION=5000
     ports:
       - 1935:1935
       - 7001:7001

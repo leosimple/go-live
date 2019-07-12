@@ -10,6 +10,8 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 )
 
@@ -30,10 +32,16 @@ type streams struct {
 }
 
 func NewServer(h av.Handler) *Server {
+	maxconn, err := strconv.Atoi(os.Getenv("MAX_CONNECTION"))
+
+	if err != nil {
+		return nil
+	}
+
 	return &Server{
 		handler: h,
 		mux:     http.NewServeMux(),
-		limiter: limiters.NewConnectionLimiter(1),
+		limiter: limiters.NewConnectionLimiter(maxconn),
 	}
 }
 
