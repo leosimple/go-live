@@ -3,7 +3,6 @@ package models
 import (
 	"go-live/orm"
 	"log"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
@@ -32,6 +31,18 @@ func GetAppById(id int) (*App, error) {
 	err := orm.Gorm.First(&app, id).Error
 
 	return &app, err
+}
+
+func GetAppByName(appname string) (*App, error) {
+	var app App
+
+	err := orm.Gorm.Where("appname = ?", appname).First(&app).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &app, nil
 }
 
 func GetAllApps() ([]App, error) {
@@ -64,17 +75,16 @@ func GetAppsByNameorLiveon(appname string) ([]App, error) {
 	return apps, nil
 }
 
-func CheckAppById(id int) bool {
-	var apps []App
-
-	err := orm.Gorm.Where("id = ?", strconv.Itoa(id)).Find(&apps).Error
+func CheckAppByName(name string) bool {
+	count := 1
+	err := orm.Gorm.Where("appname = ?", name).Count(&count).Error
 
 	if err != nil {
 		log.Println(err)
 		return false
 	}
 
-	if len(apps) == 1 {
+	if count == 1 {
 		return true
 	}
 

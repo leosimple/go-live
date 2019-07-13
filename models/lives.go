@@ -60,15 +60,15 @@ func GetAllLivesByappname(appname string) ([]Live, error) {
 	return lives, nil
 }
 
-func GetLiveByApporId(appname string, id int) (*Live, error) {
-	var lives []Live
-	err := orm.Gorm.Where("app = ?", appname).Where("id = ?", strconv.Itoa(id)).Find(&lives).Error
+func GetLiveByApporId(appname string, livename string) (*Live, error) {
+	var live Live
+	err := orm.Gorm.Where("app = ?", appname).Where("livename = ?", livename).First(&live).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &lives[0], nil
+	return &live, nil
 }
 
 func DeleteLive(live *Live) error {

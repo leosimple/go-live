@@ -7,7 +7,6 @@ import (
 	"go-live/models"
 	"go-live/orm"
 	"net/http"
-	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -51,21 +50,14 @@ func ListAppsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	})
 }
 
-func GetAppByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	appid := ps.ByName("appid")
-	if appid == "" {
-		SendErrorResponse(w, http.StatusBadRequest, "Appid is not be null.")
+func GetAppByNameHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	appname := ps.ByName("appname")
+	if appname == "" {
+		SendErrorResponse(w, http.StatusBadRequest, "Appname is not be null.")
 		return
 	}
 
-	id, err := strconv.Atoi(appid)
-
-	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	app, err := models.GetAppById(id)
+	app, err := models.GetAppByName(appname)
 
 	if err != nil {
 		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -80,25 +72,18 @@ func GetAppByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 }
 
 func DeleteAppByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	appid := ps.ByName("appid")
-	if appid == "" {
-		SendErrorResponse(w, http.StatusBadRequest, "Appid is not be null.")
+	appname := ps.ByName("appname")
+	if appname == "" {
+		SendErrorResponse(w, http.StatusBadRequest, "Appname is not be null.")
 		return
 	}
 
-	id, err := strconv.Atoi(appid)
-
-	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if !models.CheckAppById(id) {
+	if !models.CheckAppByName(appname) {
 		SendErrorResponse(w, http.StatusInternalServerError, "This app is not in the database.")
 		return
 	}
 
-	app, err := models.GetAppById(id)
+	app, err := models.GetAppByName(appname)
 
 	if err != nil {
 		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -181,17 +166,12 @@ func ListLivesByAppnameHandler(w http.ResponseWriter, r *http.Request, ps httpro
 }
 
 func GetLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var lives []models.Live
+	var live models.Live
 	appname := ps.ByName("appname")
-	liveid := ps.ByName("liveid")
+	livename := ps.ByName("livename")
 
-	err := orm.Gorm.Where("app = ?", appname).Where("id = ?", liveid).Find(&lives).Error
+	err := orm.Gorm.Where("app = ?", appname).Where("livename = ?", livename).First(&live).Error
 	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if len(lives) == 0 {
 		SendErrorResponse(w, http.StatusBadRequest, errors.New("lives cannot find.").Error())
 		return
 	}
@@ -199,29 +179,24 @@ func GetLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 	SendResponse(w, http.StatusOK, &LiveResponse{
 		Code:    http.StatusOK,
 		Message: "Successfully obtained the corresponding live.",
-		Data:    lives[0],
+		Data:    live,
 	})
 }
 
 func RefershLiveTokenByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var lives []models.Live
+	var live models.Live
 	appname := ps.ByName("appname")
-	liveid := ps.ByName("liveid")
+	livename := ps.ByName("livename")
 	token := functions.RandomString(6)
 
-	err := orm.Gorm.Where("app = ?", appname).Where("id = ?", liveid).Find(&lives).Error
+	err := orm.Gorm.Where("app = ?", appname).Where("livename = ?", livename).First(&live).Error
 
 	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if len(lives) == 0 {
 		SendErrorResponse(w, http.StatusBadRequest, errors.New("lives cannot find.").Error())
 		return
 	}
 
-	err = orm.Gorm.Model(&lives[0]).Update("Token", token).Error
+	err = orm.Gorm.Model(&live).Update("Token", token).Error
 
 	if err != nil {
 		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -237,21 +212,19 @@ func RefershLiveTokenByIdHandler(w http.ResponseWriter, r *http.Request, ps http
 
 func DeleteLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	appname := ps.ByName("appname")
-	liveid := ps.ByName("liveid")
+	livename := ps.ByName("livename")
 
-	id, err := strconv.Atoi(liveid)
-
-	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	if !models.CheckLiveById(id) {
+	if !models.CheckLive(livename) {
 		SendErrorResponse(w, http.StatusBadRequest, "This live not in database.")
 		return
 	}
 
-	live, err := models.GetLiveByApporId(appname, id)
+	live, err := models.GetLiveByApporId(appname, livename)
+
+	if err != nil {
+		SendErrorResponse(w, http.StatusNotFound, "404 live not found")
+		return
+	}
 
 	err = models.DeleteLive(live)
 
