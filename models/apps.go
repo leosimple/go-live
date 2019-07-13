@@ -76,7 +76,7 @@ func GetAppsByNameorLiveon(appname string) ([]App, error) {
 }
 
 func CheckAppByName(name string) bool {
-	count := 1
+	count := 0
 	err := orm.Gorm.Where("appname = ?", name).Count(&count).Error
 
 	if err != nil {
