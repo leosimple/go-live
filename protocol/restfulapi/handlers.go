@@ -60,7 +60,7 @@ func GetAppByNameHandler(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	app, err := models.GetAppByName(appname)
 
 	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -79,14 +79,14 @@ func DeleteAppByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 	}
 
 	if !models.CheckAppByName(appname) {
-		SendErrorResponse(w, http.StatusInternalServerError, "This app is not in the database.")
+		SendErrorResponse(w, http.StatusNotFound, "This app is not in the database.")
 		return
 	}
 
 	app, err := models.GetAppByName(appname)
 
 	if err != nil {
-		SendErrorResponse(w, http.StatusInternalServerError, err.Error())
+		SendErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -172,7 +172,7 @@ func GetLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 
 	err := orm.Gorm.Where("app = ?", appname).Where("livename = ?", livename).First(&live).Error
 	if err != nil {
-		SendErrorResponse(w, http.StatusBadRequest, errors.New("lives cannot find.").Error())
+		SendErrorResponse(w, http.StatusNotFound, errors.New("lives cannot find.").Error())
 		return
 	}
 
@@ -192,7 +192,7 @@ func RefershLiveTokenByIdHandler(w http.ResponseWriter, r *http.Request, ps http
 	err := orm.Gorm.Where("app = ?", appname).Where("livename = ?", livename).First(&live).Error
 
 	if err != nil {
-		SendErrorResponse(w, http.StatusBadRequest, errors.New("lives cannot find.").Error())
+		SendErrorResponse(w, http.StatusNotFound, errors.New("lives cannot find.").Error())
 		return
 	}
 
@@ -215,7 +215,7 @@ func DeleteLiveByIdHandler(w http.ResponseWriter, r *http.Request, ps httprouter
 	livename := ps.ByName("livename")
 
 	if !models.CheckLive(livename) {
-		SendErrorResponse(w, http.StatusBadRequest, "This live not in database.")
+		SendErrorResponse(w, http.StatusNotFound, "This live not in database.")
 		return
 	}
 
