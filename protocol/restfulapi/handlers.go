@@ -6,7 +6,9 @@ import (
 	"go-live/functions"
 	"go-live/models"
 	"go-live/orm"
+	"go-live/protocol/rtmp"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -68,6 +70,59 @@ func GetAppByNameHandler(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		Code:    http.StatusOK,
 		Data:    app,
 		Message: "Successfully obtained the corresponding application.",
+	})
+}
+
+func GetLiveStatusHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params, livestream *rtmp.RtmpStream) {
+	msgs := new(Streams)
+	for item := range livestream.GetStreams().IterBuffered() {
+		if s, ok := item.Val.(*rtmp.Stream); ok {
+			if s.GetReader() != nil {
+				switch s.GetReader().(type) {
+				case *rtmp.VirReader:
+					v := s.GetReader().(*rtmp.VirReader)
+					msg := Stream{item.Key, v.Info().URL, v.ReadBWInfo.StreamId, v.ReadBWInfo.VideoDatainBytes, v.ReadBWInfo.VideoSpeedInBytesperMS,
+						v.ReadBWInfo.AudioDatainBytes, v.ReadBWInfo.AudioSpeedInBytesperMS}
+					msgs.Publishers = append(msgs.Publishers, msg)
+				}
+			}
+		}
+	}
+
+	for item := range livestream.GetStreams().IterBuffered() {
+		ws := item.Val.(*rtmp.Stream).GetWs()
+		for s := range ws.IterBuffered() {
+			if pw, ok := s.Val.(*rtmp.PackWriterCloser); ok {
+				if pw.GetWriter() != nil {
+					switch pw.GetWriter().(type) {
+					case *rtmp.VirWriter:
+						v := pw.GetWriter().(*rtmp.VirWriter)
+						msg := Stream{item.Key, v.Info().URL, v.WriteBWInfo.StreamId, v.WriteBWInfo.VideoDatainBytes, v.WriteBWInfo.VideoSpeedInBytesperMS,
+							v.WriteBWInfo.AudioDatainBytes, v.WriteBWInfo.AudioSpeedInBytesperMS}
+						msgs.Players = append(msgs.Players, msg)
+					}
+				}
+			}
+		}
+	}
+
+	publisheronline := false
+
+	for _, v := range msgs.Publishers {
+		data := fmt.Sprintf("%s/%s", ps.ByName("appname"), ps.ByName("livename"))
+
+		if strings.Split(v.Key, "_")[0] == data {
+			publisheronline = true
+		}
+	}
+
+	playercount := len(msgs.Players)
+
+	SendResponse(w, http.StatusOK, &StatusResponse{
+		Code:        http.StatusOK,
+		Message:     "Player Status Get OK.",
+		PlayerCount: playercount,
+		IsPublisher: publisheronline,
 	})
 }
 

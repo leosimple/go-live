@@ -1,8 +1,15 @@
 package restfulapi
 
-import "github.com/julienschmidt/httprouter"
+import (
+	"net/http"
 
-func NewRouter() *httprouter.Router {
+	"go-live/av"
+	"go-live/protocol/rtmp"
+
+	"github.com/julienschmidt/httprouter"
+)
+
+func NewRouter(stream av.Handler) *httprouter.Router {
 	router := httprouter.New()
 
 	// APP Restful API
@@ -16,6 +23,10 @@ func NewRouter() *httprouter.Router {
 	router.GET("/live", ListLivesHandler)
 	router.GET("/live/:appname", ListLivesByAppnameHandler)
 	router.GET("/live/:appname/:livename/get", GetLiveByIdHandler)
+	router.GET("/live/:appname/:livename/status", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		livestream := stream.(*rtmp.RtmpStream)
+		GetLiveStatusHandler(w, r, ps, livestream)
+	})
 	router.PUT("/live/:appname/:livename/refershtoken", RefershLiveTokenByIdHandler)
 	router.DELETE("/live/:appname/:livename/del", DeleteLiveByIdHandler)
 

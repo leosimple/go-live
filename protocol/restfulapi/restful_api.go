@@ -1,6 +1,7 @@
 package restfulapi
 
 import (
+	"go-live/av"
 	"net"
 	"net/http"
 
@@ -11,9 +12,9 @@ type Server struct {
 	router *httprouter.Router
 }
 
-func NewServer() *Server {
+func NewServer(stream av.Handler) *Server {
 	return &Server{
-		router: NewRouter(),
+		router: NewRouter(stream),
 	}
 }
 

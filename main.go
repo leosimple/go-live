@@ -39,7 +39,7 @@ func startRtmp(stream *rtmp.RtmpStream) {
 	rtmpServer.Serve(rtmpListen)
 }
 
-func startAPI() {
+func startAPI(stream *rtmp.RtmpStream) {
 	apiListen, err := net.Listen("tcp", apiAddr)
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +47,7 @@ func startAPI() {
 
 	var apiServer *restfulapi.Server
 
-	apiServer = restfulapi.NewServer()
+	apiServer = restfulapi.NewServer(stream)
 
 	go func() {
 		defer func() {
@@ -109,6 +109,6 @@ func main() {
 	stream := rtmp.NewRtmpStream()
 	startHTTPFlv(stream)
 	startHTTPOpera(stream)
-	startAPI()
+	startAPI(stream)
 	startRtmp(stream)
 }

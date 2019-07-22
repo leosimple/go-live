@@ -46,6 +46,13 @@ type LiveResponse struct {
 	Message string      `json:"message"`
 }
 
+type StatusResponse struct {
+	Code        int    `json:"code"`
+	Message     string `json:"message"`
+	PlayerCount int    `json:"playercount"`
+	IsPublisher bool   `json:"ispublisher"`
+}
+
 func SendErrorResponse(w http.ResponseWriter, code int, message string) {
 	SendResponse(w, code, &ErrorResponse{
 		Code:    code,
